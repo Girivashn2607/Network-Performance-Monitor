@@ -1,0 +1,81 @@
+! ========================================================
+! Cisco IOS Configuration: HQ Core Router (R1)
+! Network Performance Monitoring Demo (SNMP, NetFlow, IP SLA, Syslog, QoS)
+! Device: Cisco 2911 or 4321 Integrated Services Router
+! ========================================================
+
+hostname R1-HQ-Gateway
+no ip domain-lookup
+service timestamps log datetime msec
+service timestamps debug datetime msec
+
+! --- Interfaces ---
+interface GigabitEthernet0/0
+ description LAN Interface to HQ Switch (SW1) and NMS Server
+ ip address 192.168.10.1 255.255.255.0
+ ip flow ingress
+ ip flow egress
+ no shutdown
+ exit
+
+interface GigabitEthernet0/1
+ description WAN Link to Branch Router (R2)
+ ip address 10.0.0.1 255.255.255.252
+ ip flow ingress
+ ip flow egress
+ no shutdown
+ exit
+
+! --- Routing ---
+ip route 192.168.20.0 255.255.255.0 10.0.0.2
+
+! --- 1. SNMP Monitoring Agent Configuration ---
+snmp-server community public RO
+snmp-server community private RW
+snmp-server location "HQ DataCenter Rack 1"
+snmp-server contact "Network Admin <admin@lab.local>"
+snmp-server host 192.168.10.10 version 2c public
+snmp-server enable traps snmp linkdown linkup
+snmp-server enable traps syslog
+
+! --- 2. Cisco IP SLA Latency & Packet Loss Probe ---
+ip sla 1
+ icmp-echo 10.0.0.2 source-interface GigabitEthernet0/1
+ frequency 5
+ timeout 1000
+ threshold 80
+ exit
+
+ip sla schedule 1 life forever start-time now
+
+! --- 3. NetFlow Traffic Flow Export ---
+ip flow-export version 9
+ip flow-export destination 192.168.10.10 2055
+ip flow-cache timeout active 1
+ip flow-cache timeout inactive 15
+
+! --- 4. Centralized Syslog Performance Logging ---
+logging host 192.168.10.10
+logging trap notifications
+logging facility local7
+
+! --- 5. Quality of Service (QoS) Queue & Dropping Monitor ---
+class-map match-any CRITICAL-TRAFFIC
+ match protocol icmp
+ match protocol snmp
+ exit
+
+policy-map WAN-PERF-POLICY
+ class CRITICAL-TRAFFIC
+  priority 128
+ class class-default
+  bandwidth 512
+ exit
+
+interface GigabitEthernet0/1
+ service-policy output WAN-PERF-POLICY
+ exit
+
+end
+write memory
+

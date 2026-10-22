@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Network Performance Monitor</title>
+  <link rel="stylesheet" href="/static/style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <div class="app-container">
+    <!-- Top Header -->
+    <header class="navbar">
+      <div class="brand">
+        <div class="pulse-dot"></div>
+        <h1>NET<b>PERF</b> // MONITOR</h1>
+        <span class="status-badge" id="connStatus">CONNECTING</span>
+      </div>
+
+      <div class="controls-bar">
+        <div class="sys-chip">
+          <span>CPU:</span> <strong id="cpuVal">0%</strong>
+        </div>
+        <div class="sys-chip">
+          <span>RAM:</span> <strong id="ramVal">0%</strong>
+        </div>
+        <button id="trafficBtn" class="btn-traffic" onclick="toggleTraffic()">
+          <span class="btn-icon">⚡</span>
+          <span id="trafficBtnText">Simulate Traffic</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Top KPI Cards -->
+    <section class="kpi-grid">
+      <div class="card kpi-card">
+        <div class="kpi-title">DOWNLOAD SPEED</div>
+        <div class="kpi-val text-green" id="kpiDlSpeed">0.00 <small>Mbps</small></div>
+        <div class="kpi-sub" id="kpiDlTotal">Total: 0 MB</div>
+      </div>
+
+      <div class="card kpi-card">
+        <div class="kpi-title">UPLOAD SPEED</div>
+        <div class="kpi-val text-cyan" id="kpiUlSpeed">0.00 <small>Mbps</small></div>
+        <div class="kpi-sub" id="kpiUlTotal">Total: 0 MB</div>
+      </div>
+
+      <div class="card kpi-card">
+        <div class="kpi-title">LATENCY (GOOGLE DNS)</div>
+        <div class="kpi-val text-yellow" id="kpiLatGoogle">-- <small>ms</small></div>
+        <div class="kpi-sub" id="kpiLatCloudflare">Cloudflare: -- ms</div>
+      </div>
+
+      <div class="card kpi-card">
+        <div class="kpi-title">ACTIVE SOCKETS</div>
+        <div class="kpi-val text-purple" id="kpiTotalSockets">0</div>
+        <div class="kpi-sub" id="kpiEstablishedSockets">Established: 0</div>
+      </div>
+    </section>
+
+    <!-- Charts Row 1 -->
+    <section class="charts-grid">
+      <div class="card chart-card">
+        <div class="chart-header">
+          <h3>Throughput History (Mbps)</h3>
+          <span class="badge">Real-time (1s)</span>
+        </div>
+        <div class="chart-wrapper">
+          <canvas id="bandwidthChart"></canvas>
+        </div>
+      </div>
+
+      <div class="card chart-card">
+        <div class="chart-header">
+          <h3>Round-Trip Time Latency (ms)</h3>
+          <span class="badge">TCP Port 53 Probe</span>
+        </div>
+        <div class="chart-wrapper">
+          <canvas id="latencyChart"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <!-- Charts Row 2 -->
+    <section class="charts-grid">
+      <div class="card chart-card">
+        <div class="chart-header">
+          <h3>Packet Rate (Packets / Second)</h3>
+          <span class="badge">RX & TX</span>
+        </div>
+        <div class="chart-wrapper">
+          <canvas id="packetChart"></canvas>
+        </div>
+      </div>
+
+      <div class="card chart-card doughnut-card">
+        <div class="chart-header">
+          <h3>Socket State Distribution</h3>
+          <span class="badge">TCP / UDP</span>
+        </div>
+        <div class="chart-wrapper doughnut-wrapper">
+          <canvas id="socketChart"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <!-- Network Interfaces Table -->
+    <section class="interfaces-section">
+      <div class="card table-card">
+        <div class="chart-header">
+          <h3>Network Interfaces (Adapters)</h3>
+          <span class="badge" id="nicCount">0 Adapters</span>
+        </div>
+        <div class="table-container">
+          <table id="interfacesTable">
+            <thead>
+              <tr>
+                <th>Adapter Name</th>
+                <th>Status</th>
+                <th>IPv4 Address</th>
+                <th>MAC Address</th>
+                <th>Link Speed</th>
+                <th>Data In (RX)</th>
+                <th>Data Out (TX)</th>
+                <th>Errors / Drops</th>
+              </tr>
+            </thead>
+            <tbody id="interfacesTbody">
+              <tr>
+                <td colspan="8" class="text-center">Loading network interfaces...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <span>NETPERF Monitor • Computer Networks Demo</span>
+      <span>Stream: WebSocket JSON (1Hz)</span>
+    </footer>
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
+

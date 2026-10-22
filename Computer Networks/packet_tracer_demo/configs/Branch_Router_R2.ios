@@ -1,0 +1,57 @@
+! ========================================================
+! Cisco IOS Configuration: Branch Router (R2)
+! Network Performance Monitoring Demo
+! Device: Cisco 2911 or 4321 Integrated Services Router
+! ========================================================
+
+hostname R2-Branch-Gateway
+no ip domain-lookup
+service timestamps log datetime msec
+service timestamps debug datetime msec
+
+! --- Interfaces ---
+interface GigabitEthernet0/1
+ description WAN Link to HQ Router (R1)
+ ip address 10.0.0.2 255.255.255.252
+ ip flow ingress
+ ip flow egress
+ no shutdown
+ exit
+
+interface GigabitEthernet0/0
+ description LAN Interface to Branch Switch (SW2) and Users
+ ip address 192.168.20.1 255.255.255.0
+ ip flow ingress
+ ip flow egress
+ no shutdown
+ exit
+
+! --- Routing ---
+ip route 192.168.10.0 255.255.255.0 10.0.0.1
+
+! --- 1. SNMP Monitoring Agent Configuration ---
+snmp-server community public RO
+snmp-server community private RW
+snmp-server location "Branch Office Telecom Closet"
+snmp-server contact "Network Admin <admin@lab.local>"
+snmp-server host 192.168.10.10 version 2c public
+snmp-server enable traps snmp linkdown linkup
+snmp-server enable traps syslog
+
+! --- 2. IP SLA Responder (Responds to HQ SLA ICMP / Jitter Probes) ---
+! (Standard ICMP response is enabled by default)
+
+! --- 3. NetFlow Traffic Flow Export ---
+ip flow-export version 9
+ip flow-export destination 192.168.10.10 2055
+ip flow-cache timeout active 1
+ip flow-cache timeout inactive 15
+
+! --- 4. Centralized Syslog Performance Logging ---
+logging host 192.168.10.10
+logging trap notifications
+logging facility local7
+
+end
+write memory
+

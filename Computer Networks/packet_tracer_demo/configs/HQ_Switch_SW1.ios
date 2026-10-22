@@ -1,0 +1,32 @@
+! ========================================================
+! Cisco IOS Configuration: HQ Access Switch (SW1)
+! Network Performance Monitoring Demo
+! Device: Cisco Catalyst 2960 Switch
+! ========================================================
+
+hostname SW1-HQ-Switch
+no ip domain-lookup
+
+! --- Management Interface ---
+interface vlan 1
+ ip address 192.168.10.2 255.255.255.0
+ no shutdown
+ exit
+
+ip default-gateway 192.168.10.1
+
+! --- SNMP Monitoring Agent ---
+snmp-server community public RO
+snmp-server community private RW
+snmp-server location "HQ Server Room Switch Rack"
+snmp-server contact "Network Admin <admin@lab.local>"
+snmp-server host 192.168.10.10 version 2c public
+snmp-server enable traps snmp linkdown linkup
+
+! --- Syslog Performance Alerts ---
+logging host 192.168.10.10
+logging trap notifications
+
+end
+write memory
+
